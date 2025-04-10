@@ -104,7 +104,7 @@ const Index = () => {
               <CardContent className="p-6">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold mb-2">Prototipo Normal</h3>
-                  <div className="text-4xl font-bold">1500 €</div>
+                  <div className="text-4xl font-bold">100 €</div>
                   <p className="text-muted-foreground mt-2">Entrega en 6 días</p>
                 </div>
                 <ul className="space-y-3 mb-6">
@@ -125,7 +125,7 @@ const Index = () => {
                     <span>Entrega en formato digital</span>
                   </li>
                 </ul>
-                <Link to="/request-prototype?plan=normal" className="block">
+                <Link to="/request-prototype" className="block">
                   <Button className="w-full bg-bloodRed hover:bg-red-900">Solicitar</Button>
                 </Link>
               </CardContent>
@@ -138,7 +138,7 @@ const Index = () => {
               <CardContent className="p-6">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold mb-2">Prototipo Premium</h3>
-                  <div className="text-4xl font-bold">3000 €</div>
+                  <div className="text-4xl font-bold">500 €</div>
                   <p className="text-muted-foreground mt-2">Entrega en 10 días</p>
                 </div>
                 <ul className="space-y-3 mb-6">
@@ -163,7 +163,7 @@ const Index = () => {
                     <span>Reunión de presentación personalizada</span>
                   </li>
                 </ul>
-                <Link to="/request-prototype?plan=premium" className="block">
+                <Link to="/request-prototype" className="block">
                   <Button className="w-full bg-bloodRed hover:bg-red-900">Solicitar</Button>
                 </Link>
               </CardContent>
