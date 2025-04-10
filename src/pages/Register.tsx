@@ -1,13 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/components/ui/use-toast";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -29,9 +28,17 @@ type FormValues = z.infer<typeof formSchema>;
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const { register } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const { register, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  // Redirigir si el usuario ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath = isAdmin ? "/admin" : "/dashboard";
+      navigate(redirectPath);
+    }
+  }, [isAuthenticated, isAdmin, navigate]);
 
   // Configuración del formulario
   const form = useForm<FormValues>({
@@ -46,22 +53,16 @@ const Register = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
+    setError(null);
     
     try {
+      console.log("Submitting registration form:", values.email);
       await register(values.name, values.email, values.password);
-      
-      toast({
-        title: "Registro exitoso",
-        description: "Tu cuenta ha sido creada correctamente. Bienvenido a ProtoSpark.",
-      });
-      
-      navigate("/dashboard");
+      // La redirección se maneja en el useEffect
     } catch (error: any) {
-      toast({
-        title: "Error al registrarse",
-        description: error.message || "Ha ocurrido un error al crear la cuenta",
-        variant: "destructive",
-      });
+      console.error("Registration error:", error);
+      setError(error.message || "Ha ocurrido un error al crear la cuenta");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -77,6 +78,13 @@ const Register = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -178,7 +186,12 @@ const Register = () => {
                   className="w-full bg-bloodRed hover:bg-red-900"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando cuenta...
+                    </>
+                  ) : "Crear Cuenta"}
                 </Button>
                 
                 <div className="text-center text-sm">

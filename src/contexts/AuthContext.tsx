@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService, User, UserRole } from '@/services/authService';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -37,23 +38,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin: authService.isAdmin(),
     isCustomer: authService.isCustomer(),
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     // Configurar escucha para cambios de autenticación de Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state change:", event, session);
         
         // Si hay una sesión o el evento es SIGNED_OUT, sincronizar con Supabase
         if (session || event === 'SIGNED_OUT') {
-          await authService.syncWithSupabase();
-          
-          setState({
-            user: authService.getCurrentUser(),
-            isAuthenticated: authService.isAuthenticated(),
-            isAdmin: authService.isAdmin(),
-            isCustomer: authService.isCustomer(),
-          });
+          // Usar setTimeout para evitar deadlock con Supabase auth
+          setTimeout(() => {
+            authService.syncWithSupabase().then(() => {
+              setState({
+                user: authService.getCurrentUser(),
+                isAuthenticated: authService.isAuthenticated(),
+                isAdmin: authService.isAdmin(),
+                isCustomer: authService.isCustomer(),
+              });
+            }).catch(error => {
+              console.error('Error syncing with Supabase after auth change:', error);
+            });
+          }, 0);
         }
       }
     );
@@ -79,12 +86,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Limpieza al desmontar
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe?.();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const user = await authService.login(email, password);
       setState({
         user: authService.getCurrentUser(),
@@ -92,15 +100,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: authService.isAdmin(),
         isCustomer: authService.isCustomer(),
       });
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: `Bienvenido, ${user.name || email}`,
+      });
       return user;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error in AuthContext:", error);
+      toast({
+        title: "Error al iniciar sesión",
+        description: error.message || "Credenciales incorrectas",
+        variant: "destructive",
+      });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
+      setLoading(true);
       const user = await authService.register(name, email, password);
       setState({
         user: authService.getCurrentUser(),
@@ -108,15 +128,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: authService.isAdmin(),
         isCustomer: authService.isCustomer(),
       });
+      toast({
+        title: "Registro exitoso",
+        description: `Bienvenido, ${name}`,
+      });
       return user;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Register error in AuthContext:", error);
+      toast({
+        title: "Error al registrarse",
+        description: error.message || "No se pudo completar el registro",
+        variant: "destructive",
+      });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      setLoading(true);
       await authService.logout();
       setState({
         user: null,
@@ -124,9 +156,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: false,
         isCustomer: false,
       });
-    } catch (error) {
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente"
+      });
+    } catch (error: any) {
       console.error("Logout error in AuthContext:", error);
+      toast({
+        title: "Error al cerrar sesión",
+        description: error.message || "Ocurrió un error al cerrar sesión",
+        variant: "destructive",
+      });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
