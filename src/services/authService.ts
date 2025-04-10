@@ -44,6 +44,24 @@ const saveAuthState = (state: AuthState): void => {
   }
 };
 
+// Demo users para facilitar el acceso sin necesitar Supabase Auth
+const DEMO_USERS = [
+  {
+    email: "admin@protospark.com",
+    password: "password",
+    name: "Admin User",
+    role: "admin" as UserRole,
+    id: "00000000-0000-0000-0000-000000000001",
+  },
+  {
+    email: "cliente@demo.com",
+    password: "password",
+    name: "Cliente Demo",
+    role: "customer" as UserRole,
+    id: "00000000-0000-0000-0000-000000000002",
+  },
+];
+
 // Servicio de autenticación
 export const authService = {
   currentAuthState: loadAuthState(),
@@ -73,9 +91,34 @@ export const authService = {
     return this.hasRole("customer");
   },
 
-  // Iniciar sesión
+  // Iniciar sesión - primero intenta con usuarios de demostración, luego con Supabase
   async login(email: string, password: string): Promise<User> {
     try {
+      // Comprobar si es un usuario de demostración
+      const demoUser = DEMO_USERS.find(
+        (user) => user.email === email && user.password === password
+      );
+
+      if (demoUser) {
+        console.log("Demo user login successful:", demoUser.email);
+        const user: User = {
+          id: demoUser.id,
+          name: demoUser.name,
+          email: demoUser.email,
+          role: demoUser.role,
+        };
+
+        // Actualizar estado de autenticación
+        this.currentAuthState = {
+          user,
+          isAuthenticated: true
+        };
+
+        saveAuthState(this.currentAuthState);
+        return user;
+      }
+
+      // Si no es un usuario de demostración, intentar con Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -113,6 +156,12 @@ export const authService = {
   // Registrar un nuevo usuario
   async register(name: string, email: string, password: string): Promise<User> {
     try {
+      // Comprobar si ya existe un usuario de demostración con ese email
+      const existingDemoUser = DEMO_USERS.find(user => user.email === email);
+      if (existingDemoUser) {
+        throw new Error("Este usuario ya existe. Por favor utiliza un email diferente.");
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -151,8 +200,14 @@ export const authService = {
   // Cerrar sesión
   async logout(): Promise<void> {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Solo intentar cerrar sesión en Supabase si no es un usuario de demostración
+      const currentUser = this.getCurrentUser();
+      const isDemoUser = currentUser && DEMO_USERS.some(user => user.id === currentUser.id);
+      
+      if (!isDemoUser) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
       
       this.currentAuthState = {
         user: null,
