@@ -13,10 +13,11 @@ const Index = () => {
         <div className="container px-4 py-20 md:py-32 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-              Convierte tus Ideas en Prototipos Reales con IA
+              Conviertimos tus Ideas en Prototipos Reales
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-              Obtén un prototipo funcional de tu aplicación en tiempo récord. Potenciado por IA, diseñado por expertos.
+              Obtén un prototipo funcional de tu aplicación en tiempo récord.
+              Potenciado por IA, diseñado por expertos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/request-prototype">
