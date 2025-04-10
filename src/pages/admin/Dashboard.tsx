@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import Overview from "./Overview";
 import Orders from "./Orders";
 import Customers from "./Customers";
 import Chat from "./Chat";
-import Settings as SettingsPage from "./Settings";
+import SettingsPage from "./Settings"; // Corrected import
 
 // Simulate authentication check
 const isAdmin = true; // This would be a real admin auth check in production
@@ -155,7 +154,7 @@ const AdminDashboard = () => {
             <Route path="/orders" element={<Orders />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/chat" element={<Chat />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings" element={<SettingsPage />} /> {/* Corrected component name */}
             <Route path="*" element={<Navigate to="/admin" />} />
           </Routes>
         </main>
