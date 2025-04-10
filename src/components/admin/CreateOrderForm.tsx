@@ -57,11 +57,7 @@ const CreateOrderForm = ({ customers, onSuccess }: CreateOrderFormProps) => {
     try {
       setLoading(true);
       const orderData = {
-        customer_id: values.customer_id,
-        project: values.project,
-        type: values.type,
-        price: values.price,
-        status: values.status,
+        ...values,
         date: new Date().toISOString(),
         deadline: values.deadline.toISOString(),
       };

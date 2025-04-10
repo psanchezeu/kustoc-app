@@ -1,17 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Esquema de validación
 const formSchema = z.object({
@@ -23,10 +21,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isAuthenticated, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Establecer valores predeterminados para facilitar el acceso demo
@@ -35,12 +31,10 @@ const Login = () => {
     password: "",
   };
   
-  // Redirigir si el usuario ya está autenticado
   useEffect(() => {
+    // Si el usuario ya está autenticado, redirigirlo
     if (isAuthenticated) {
-      const redirectPath = isAdmin ? "/admin" : "/dashboard";
-      console.log(`User already authenticated, redirecting to ${redirectPath}`);
-      navigate(redirectPath);
+      navigate(isAdmin ? "/admin" : "/dashboard");
     }
   }, [isAuthenticated, isAdmin, navigate]);
 
@@ -53,16 +47,22 @@ const Login = () => {
   // Función para manejar el envío del formulario
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
-    setError(null);
     
     try {
-      console.log("Submitting login form with email:", values.email);
       await login(values.email, values.password);
       // La redirección se maneja en el useEffect
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido a ProtoSpark",
+      });
+      console.log("Login successful for:", values.email);
     } catch (error: any) {
       console.error("Login error:", error);
-      setError(error.message || "Credenciales incorrectas");
-    } finally {
+      toast({
+        title: "Error al iniciar sesión",
+        description: error.message || "Credenciales incorrectas",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -76,7 +76,7 @@ const Login = () => {
     form.setValue('email', demoCredentials.email);
     form.setValue('password', demoCredentials.password);
     
-    // Enviar el formulario automáticamente
+    // Opcional: enviar el formulario automáticamente
     form.handleSubmit(onSubmit)();
   };
 
@@ -90,13 +90,6 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -146,12 +139,7 @@ const Login = () => {
                 className="w-full bg-bloodRed hover:bg-red-900" 
                 disabled={loading}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando sesión...
-                  </>
-                ) : "Iniciar Sesión"}
+                {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
               <div className="text-center text-sm text-muted-foreground">
                 ¿No tienes una cuenta?{" "}
@@ -170,7 +158,6 @@ const Login = () => {
                     size="sm"
                     onClick={() => loginWithDemo('admin')}
                     className="text-xs"
-                    disabled={loading}
                   >
                     Iniciar como Admin
                   </Button>
@@ -180,7 +167,6 @@ const Login = () => {
                     size="sm"
                     onClick={() => loginWithDemo('customer')}
                     className="text-xs"
-                    disabled={loading}
                   >
                     Iniciar como Cliente
                   </Button>

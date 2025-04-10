@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/common/Logo";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, Sun, Moon, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -32,13 +32,11 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md border-b border-border/40 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <div className="mr-2">
-              <Logo />
-            </div>
+            <Logo className="h-8 w-auto mr-2" />
             <span className="font-bold text-xl">Kustoc</span>
           </Link>
         </div>
@@ -60,14 +58,14 @@ const Navbar = () => {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center space-x-3">
+        <div className="hidden md:flex items-center space-x-2">
           <ThemeToggle />
           
           {user ? (
             <div className="flex items-center space-x-2">
-              <Link to={user.role === "admin" ? "/admin" : "/dashboard"}>
-                <Button variant="ghost" size="sm">
-                  {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
+              <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
+                <Button variant="ghost">
+                  {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
                 </Button>
               </Link>
               <Button variant="ghost" size="icon" onClick={logout}>
@@ -78,10 +76,10 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Iniciar Sesión</Button>
+                <Button variant="ghost">Iniciar Sesión</Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-bloodRed hover:bg-red-900" size="sm">Registro</Button>
+                <Button className="bg-bloodRed hover:bg-red-900">Registro</Button>
               </Link>
             </>
           )}
@@ -90,11 +88,11 @@ const Navbar = () => {
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-2 md:hidden">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" onClick={toggleMenu} aria-label="Toggle menu">
+          <Button variant="ghost" size="icon" onClick={toggleMenu}>
             {isOpen ? (
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             ) : (
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
             )}
           </Button>
         </div>
@@ -102,7 +100,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isOpen && isMobile && (
-        <div className="md:hidden border-t animate-in slide-in-from-top duration-300">
+        <div className="md:hidden border-t">
           <div className="container py-4 px-4 flex flex-col space-y-4">
             {navItems.map((item) => (
               <Link
@@ -113,7 +111,6 @@ const Navbar = () => {
                     ? "text-foreground font-bold"
                     : "text-muted-foreground"
                 }`}
-                onClick={() => setIsOpen(false)}
               >
                 {item.name}
               </Link>
@@ -121,9 +118,9 @@ const Navbar = () => {
             <div className="pt-4 border-t">
               {user ? (
                 <div className="flex flex-col space-y-3">
-                  <Link to={user.role === "admin" ? "/admin" : "/dashboard"} onClick={() => setIsOpen(false)}>
+                  <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
                     <Button variant="outline" className="w-full">
-                      {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
+                      {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
                     </Button>
                   </Link>
                   <Button variant="outline" className="w-full" onClick={logout}>
@@ -133,10 +130,10 @@ const Navbar = () => {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-3">
-                  <Link to="/login" className="w-full" onClick={() => setIsOpen(false)}>
+                  <Link to="/login" className="w-full">
                     <Button variant="outline" className="w-full">Iniciar Sesión</Button>
                   </Link>
-                  <Link to="/register" className="w-full" onClick={() => setIsOpen(false)}>
+                  <Link to="/register" className="w-full">
                     <Button className="w-full bg-bloodRed hover:bg-red-900">Registro</Button>
                   </Link>
                 </div>
