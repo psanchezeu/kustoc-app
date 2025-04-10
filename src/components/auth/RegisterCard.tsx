@@ -2,22 +2,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import RegisterForm from "./RegisterForm";
 import SocialLogin from "./SocialLogin";
-import { useState } from "react";
 
 const RegisterCard = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  
   return (
-    <Card className="border-2">
-      <CardHeader className="text-center">
+    <Card className="border-2 shadow-md">
+      <CardHeader className="text-center space-y-2 pb-6">
         <CardTitle className="text-2xl font-bold">Crear Cuenta</CardTitle>
-        <CardDescription>
+        <CardDescription className="text-muted-foreground">
           Regístrate para comenzar a crear tus prototipos
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <RegisterForm />
-        <SocialLogin isLoading={isLoading} />
+        <SocialLogin />
       </CardContent>
     </Card>
   );

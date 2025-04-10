@@ -10,12 +10,15 @@ const Footer = () => {
       <div className="container px-4 py-12 md:py-16 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="flex flex-col space-y-4">
-            <Logo />
+            <div className="flex items-center">
+              <Logo />
+              <span className="font-bold text-xl ml-2">Kustoc</span>
+            </div>
             <p className="max-w-xs text-muted-foreground">
               Transforma tus ideas en prototipos funcionales con nuestra plataforma impulsada por IA.
             </p>
             <div className="flex space-x-4">
-              <Link to="#" className="text-muted-foreground hover:text-foreground">
+              <Link to="#" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Instagram">
                 <span className="sr-only">Instagram</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +35,7 @@ const Footer = () => {
                   <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
                 </svg>
               </Link>
-              <Link to="#" className="text-muted-foreground hover:text-foreground">
+              <Link to="#" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Twitter">
                 <span className="sr-only">Twitter</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +50,7 @@ const Footer = () => {
                   <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                 </svg>
               </Link>
-              <Link to="#" className="text-muted-foreground hover:text-foreground">
+              <Link to="#" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="LinkedIn">
                 <span className="sr-only">LinkedIn</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -66,10 +69,10 @@ const Footer = () => {
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-8 lg:col-span-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-8 md:gap-16 lg:col-span-2 lg:grid-cols-4">
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Servicios</h3>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 <li>
                   <Link to="/prototypes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Prototipos
@@ -89,7 +92,7 @@ const Footer = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Empresa</h3>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 <li>
                   <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Acerca de
@@ -109,7 +112,7 @@ const Footer = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Soporte</h3>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 <li>
                   <Link to="/faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Preguntas Frecuentes
@@ -124,7 +127,7 @@ const Footer = () => {
             </div>
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Legal</h3>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 <li>
                   <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Privacidad
@@ -139,7 +142,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="mt-12 border-t pt-8">
+        <div className="mt-12 border-t pt-6">
           <p className="text-center text-xs text-muted-foreground">
             &copy; {currentYear} Kustoc. Todos los derechos reservados.
           </p>

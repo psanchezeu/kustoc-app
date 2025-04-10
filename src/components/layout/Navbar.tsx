@@ -32,11 +32,10 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
+    <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md border-b border-border/40 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            {/* Fix nesting issue with Logo component */}
             <div className="mr-2">
               <Logo />
             </div>
@@ -61,13 +60,13 @@ const Navbar = () => {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center space-x-2">
+        <div className="hidden md:flex items-center space-x-3">
           <ThemeToggle />
           
           {user ? (
             <div className="flex items-center space-x-2">
               <Link to={user.role === "admin" ? "/admin" : "/dashboard"}>
-                <Button variant="ghost">
+                <Button variant="ghost" size="sm">
                   {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
                 </Button>
               </Link>
@@ -79,10 +78,10 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost">Iniciar Sesión</Button>
+                <Button variant="ghost" size="sm">Iniciar Sesión</Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-bloodRed hover:bg-red-900">Registro</Button>
+                <Button className="bg-bloodRed hover:bg-red-900" size="sm">Registro</Button>
               </Link>
             </>
           )}
@@ -91,11 +90,11 @@ const Navbar = () => {
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-2 md:hidden">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" onClick={toggleMenu}>
+          <Button variant="ghost" size="icon" onClick={toggleMenu} aria-label="Toggle menu">
             {isOpen ? (
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             ) : (
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5" />
             )}
           </Button>
         </div>
@@ -103,7 +102,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isOpen && isMobile && (
-        <div className="md:hidden border-t">
+        <div className="md:hidden border-t animate-in slide-in-from-top duration-300">
           <div className="container py-4 px-4 flex flex-col space-y-4">
             {navItems.map((item) => (
               <Link
@@ -114,6 +113,7 @@ const Navbar = () => {
                     ? "text-foreground font-bold"
                     : "text-muted-foreground"
                 }`}
+                onClick={() => setIsOpen(false)}
               >
                 {item.name}
               </Link>
@@ -121,7 +121,7 @@ const Navbar = () => {
             <div className="pt-4 border-t">
               {user ? (
                 <div className="flex flex-col space-y-3">
-                  <Link to={user.role === "admin" ? "/admin" : "/dashboard"}>
+                  <Link to={user.role === "admin" ? "/admin" : "/dashboard"} onClick={() => setIsOpen(false)}>
                     <Button variant="outline" className="w-full">
                       {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
                     </Button>
@@ -133,10 +133,10 @@ const Navbar = () => {
                 </div>
               ) : (
                 <div className="flex flex-col space-y-3">
-                  <Link to="/login" className="w-full">
+                  <Link to="/login" className="w-full" onClick={() => setIsOpen(false)}>
                     <Button variant="outline" className="w-full">Iniciar Sesión</Button>
                   </Link>
-                  <Link to="/register" className="w-full">
+                  <Link to="/register" className="w-full" onClick={() => setIsOpen(false)}>
                     <Button className="w-full bg-bloodRed hover:bg-red-900">Registro</Button>
                   </Link>
                 </div>

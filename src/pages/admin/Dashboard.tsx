@@ -12,9 +12,7 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight,
-  Sun,
-  Moon
+  ChevronRight
 } from "lucide-react";
 import Overview from "./Overview";
 import Orders from "./Orders";
@@ -54,7 +52,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b">
+      <div className="lg:hidden flex items-center justify-between p-4 border-b shadow-sm">
         <Link to="/admin" className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-bloodRed text-white font-bold text-lg">
             K
@@ -67,6 +65,7 @@ const AdminDashboard = () => {
             variant="ghost"
             size="icon"
             onClick={toggleMobileSidebar}
+            aria-label="Toggle menu"
             className="lg:hidden"
           >
             {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -77,7 +76,7 @@ const AdminDashboard = () => {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 border-r bg-background lg:static transform transition-all duration-300 ease-in-out ${
+          className={`fixed inset-y-0 left-0 z-50 border-r bg-sidebar text-sidebar-foreground lg:static transform transition-all duration-300 ease-in-out ${
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           } ${
             sidebarCollapsed ? "w-20" : "w-64"
@@ -88,6 +87,7 @@ const AdminDashboard = () => {
             <button 
               onClick={toggleSidebar}
               className="absolute -right-3 top-20 bg-background border rounded-full p-1 hidden lg:flex items-center justify-center z-50 hover:bg-accent"
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {sidebarCollapsed ? 
                 <ChevronRight className="h-4 w-4" /> : 
@@ -111,13 +111,13 @@ const AdminDashboard = () => {
             </div>
             
             <div className={`p-4 border-b ${sidebarCollapsed ? "items-center" : ""}`}>
-              <div className={`p-4 bg-muted/30 rounded-lg ${sidebarCollapsed ? "flex justify-center" : ""}`}>
+              <div className={`p-4 bg-sidebar-accent/20 rounded-lg ${sidebarCollapsed ? "flex justify-center" : ""}`}>
                 <div className={`flex ${sidebarCollapsed ? "flex-col items-center" : "flex-col"}`}>
                   {!sidebarCollapsed && (
                     <span className="font-medium">{user?.name || "Administrador"}</span>
                   )}
                   {!sidebarCollapsed && (
-                    <span className="text-xs text-muted-foreground">{user?.email || "admin@kustoc.com"}</span>
+                    <span className="text-xs text-sidebar-foreground/70">{user?.email || "admin@kustoc.com"}</span>
                   )}
                   {sidebarCollapsed && (
                     <Users className="h-6 w-6" />
@@ -126,7 +126,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             
-            <nav className="flex-1 p-4 space-y-1">
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
               <Link to="/admin">
                 <Button
                   variant={location.pathname === "/admin" ? "secondary" : "ghost"}
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
               <Link to="/admin/orders">
                 <Button
                   variant={location.pathname.includes("/admin/orders") ? "secondary" : "ghost"}
-                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"} relative`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
                   <ClipboardList className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
               <Link to="/admin/chat">
                 <Button
                   variant={location.pathname.includes("/admin/chat") ? "secondary" : "ghost"}
-                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"} relative`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
                   <MessageSquare className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
@@ -215,7 +215,7 @@ const AdminDashboard = () => {
             <div className="p-4 border-t mt-auto">
               <Button 
                 variant="ghost" 
-                className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"} text-bloodRed`}
+                className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"} text-bloodRed hover:text-bloodRed/80`}
                 onClick={handleLogout}
               >
                 <LogOut className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
@@ -226,15 +226,17 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-4 lg:p-8">
-          <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<Navigate to="/admin" />} />
-          </Routes>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto max-h-screen">
+          <div className="container mx-auto">
+            <Routes>
+              <Route path="/" element={<Overview />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/admin" />} />
+            </Routes>
+          </div>
         </main>
       </div>
     </div>

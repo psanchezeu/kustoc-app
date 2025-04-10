@@ -17,7 +17,7 @@ const Register = () => {
   }, [isAuthenticated, isAdmin, navigate]);
 
   return (
-    <div className="container px-4 py-16 md:py-24 flex justify-center">
+    <div className="container px-4 py-16 md:py-24 flex justify-center items-center min-h-[calc(100vh-64px)]">
       <div className="w-full max-w-md">
         <RegisterCard />
       </div>
