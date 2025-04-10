@@ -33,6 +33,17 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminClients from "./pages/admin/Clients";
 
+// Footer Pages
+import Prototypes from "./pages/footer/Prototypes";
+import Development from "./pages/footer/Development";
+import Consultation from "./pages/footer/Consultation";
+import AboutUs from "./pages/footer/AboutUs";
+import ClientsPage from "./pages/footer/ClientsPage";
+import Team from "./pages/footer/Team";
+import Contact from "./pages/footer/Contact";
+import Privacy from "./pages/footer/Privacy";
+import Terms from "./pages/footer/Terms";
+
 import "./App.css";
 
 function App() {
@@ -49,6 +60,17 @@ function App() {
           <Route path="faq" element={<FAQ />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          
+          {/* Footer Pages */}
+          <Route path="prototypes" element={<Prototypes />} />
+          <Route path="development" element={<Development />} />
+          <Route path="consultation" element={<Consultation />} />
+          <Route path="clients" element={<ClientsPage />} />
+          <Route path="team" element={<Team />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<Terms />} />
+          
           <Route path="*" element={<NotFound />} />
         </Route>
 
@@ -56,7 +78,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute role="customer">
               <Dashboard />
             </ProtectedRoute>
           }
@@ -73,7 +95,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute adminOnly>
+            <ProtectedRoute role="admin">
               <AdminDashboard />
             </ProtectedRoute>
           }

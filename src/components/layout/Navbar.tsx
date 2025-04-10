@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/common/Logo";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Sun, Moon, LogOut } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -36,7 +36,7 @@ const Navbar = () => {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <Logo className="h-8 w-auto mr-2" />
+            <Logo />
             <span className="font-bold text-xl">Kustoc</span>
           </Link>
         </div>
@@ -63,9 +63,9 @@ const Navbar = () => {
           
           {user ? (
             <div className="flex items-center space-x-2">
-              <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
+              <Link to={user.role === "admin" ? "/admin" : "/dashboard"}>
                 <Button variant="ghost">
-                  {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
+                  {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
                 </Button>
               </Link>
               <Button variant="ghost" size="icon" onClick={logout}>
@@ -118,9 +118,9 @@ const Navbar = () => {
             <div className="pt-4 border-t">
               {user ? (
                 <div className="flex flex-col space-y-3">
-                  <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
+                  <Link to={user.role === "admin" ? "/admin" : "/dashboard"}>
                     <Button variant="outline" className="w-full">
-                      {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
+                      {user.role === "admin" ? "Panel Admin" : "Mi Cuenta"}
                     </Button>
                   </Link>
                   <Button variant="outline" className="w-full" onClick={logout}>

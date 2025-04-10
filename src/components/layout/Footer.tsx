@@ -111,7 +111,7 @@ const Footer = () => {
               <h3 className="text-sm font-medium">Soporte</h3>
               <ul className="space-y-1">
                 <li>
-                  <Link to="/faqs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link to="/faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     Preguntas Frecuentes
                   </Link>
                 </li>
@@ -141,7 +141,7 @@ const Footer = () => {
         </div>
         <div className="mt-12 border-t pt-8">
           <p className="text-center text-xs text-muted-foreground">
-            &copy; {currentYear} ProtoSpark. Todos los derechos reservados.
+            &copy; {currentYear} Kustoc. Todos los derechos reservados.
           </p>
         </div>
       </div>
