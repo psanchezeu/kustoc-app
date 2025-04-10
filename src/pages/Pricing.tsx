@@ -18,7 +18,7 @@ const Pricing = () => {
 
   const normalPlan = {
     name: "Prototipo Normal",
-    price: "1000 €",
+    price: "100 €",
     description: "Perfecto para validar conceptos básicos rápidamente",
     delivery: "6 días",
     features: {
