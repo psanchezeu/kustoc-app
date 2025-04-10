@@ -32,7 +32,7 @@ export const messageService = {
     
     if (error) throw error;
     if (!data) throw new Error('No se pudo enviar el mensaje');
-    return data;
+    return data as Message;
   },
   
   // Suscribirse a nuevos mensajes de un pedido

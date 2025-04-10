@@ -22,7 +22,7 @@ export const orderService = {
       .order('date', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    return data as Order[] || [];
   },
   
   // Obtener pedidos de un cliente específico
@@ -34,7 +34,7 @@ export const orderService = {
       .order('date', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    return data as Order[] || [];
   },
   
   // Obtener un pedido por ID
@@ -43,10 +43,10 @@ export const orderService = {
       .from('orders')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 es el código para 'no encontrado'
-    return data || null;
+    if (error) throw error;
+    return data as Order | null;
   },
   
   // Crear un nuevo pedido
@@ -59,7 +59,7 @@ export const orderService = {
     
     if (error) throw error;
     if (!data) throw new Error('No se pudo crear el pedido');
-    return data;
+    return data as Order;
   },
   
   // Actualizar un pedido
@@ -73,6 +73,6 @@ export const orderService = {
     
     if (error) throw error;
     if (!data) throw new Error('No se pudo actualizar el pedido');
-    return data;
+    return data as Order;
   }
 };

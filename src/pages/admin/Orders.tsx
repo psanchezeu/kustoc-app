@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +28,11 @@ interface OrderWithCustomer extends Order {
   customer_name: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+}
+
 const Orders = () => {
   const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,7 +55,7 @@ const Orders = () => {
 
         // Combinar datos
         const ordersWithCustomer = allOrders.map(order => {
-          const customer = profiles?.find(p => p.id === order.customer_id);
+          const customer = (profiles as Profile[])?.find(p => p.id === order.customer_id);
           return {
             ...order,
             customer_name: customer?.name || 'Cliente desconocido'

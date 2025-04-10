@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { authService, User, UserRole } from '@/services/authService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,7 +31,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const [state, setState] = useState({
     user: authService.getCurrentUser(),
     isAuthenticated: authService.isAuthenticated(),
@@ -56,21 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isAdmin: authService.isAdmin(),
             isCustomer: authService.isCustomer(),
           });
-          
-          // Redirigir basado en el evento
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            setTimeout(() => {
-              if (authService.isAdmin()) {
-                navigate('/admin');
-              } else if (authService.isCustomer()) {
-                navigate('/dashboard');
-              }
-            }, 0);
-          } else if (event === 'SIGNED_OUT') {
-            setTimeout(() => {
-              navigate('/login');
-            }, 0);
-          }
         }
       }
     );
@@ -98,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     const user = await authService.login(email, password);

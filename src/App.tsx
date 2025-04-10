@@ -19,6 +19,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/dashboard/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -47,13 +48,14 @@ const App = () => {
     };
   }, []);
 
+  // El AuthProvider está dentro de BrowserRouter
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <Routes>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
@@ -76,9 +78,9 @@ const App = () => {
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+          </TooltipProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };

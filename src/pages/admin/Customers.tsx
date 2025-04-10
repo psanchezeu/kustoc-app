@@ -28,6 +28,17 @@ interface Customer {
   status: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+interface Order {
+  customer_id: string;
+  price: number;
+}
+
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,24 +51,9 @@ const Customers = () => {
         // Obtener los perfiles de usuarios
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select(`
-            id,
-            name,
-            created_at
-          `);
+          .select('id, name, created_at');
         
         if (profilesError) throw profilesError;
-        
-        // Obtener los emails de auth.users (solo disponible para administradores)
-        const { data: users, error: usersError } = await supabase
-          .from('auth')
-          .from('users')
-          .select('id, email');
-        
-        if (usersError) {
-          console.error("Error fetching users:", usersError);
-          // Continuar con los perfiles obtenidos
-        }
         
         // Obtener los pedidos para calcular totales
         const { data: orders, error: ordersError } = await supabase
@@ -67,18 +63,16 @@ const Customers = () => {
         if (ordersError) throw ordersError;
         
         // Combinar los datos
-        const customersData = profiles?.map(profile => {
-          const user = users?.find(u => u.id === profile.id) || { email: 'Correo oculto' };
-          
+        const customersData = (profiles as Profile[])?.map(profile => {
           // Calcular estadísticas de pedidos
-          const customerOrders = orders?.filter(order => order.customer_id === profile.id) || [];
+          const customerOrders = (orders as Order[])?.filter(order => order.customer_id === profile.id) || [];
           const ordersCount = customerOrders.length;
           const totalSpent = customerOrders.reduce((sum, order) => sum + parseFloat(order.price.toString()), 0);
           
           return {
             id: profile.id,
             name: profile.name,
-            email: user.email,
+            email: 'Correo oculto', // No podemos acceder directamente a emails de usuarios
             created_at: profile.created_at,
             orders_count: ordersCount,
             total_spent: totalSpent,
@@ -172,7 +166,13 @@ const Customers = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCustomers.map((customer) => (
+              {customers
+                .filter(customer => 
+                  customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  customer.id.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -202,7 +202,11 @@ const Customers = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredCustomers.length === 0 && (
+              {customers.filter(c => 
+                c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.id.toLowerCase().includes(searchTerm.toLowerCase())
+              ).length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No se encontraron clientes que coincidan con la búsqueda.
@@ -215,6 +219,34 @@ const Customers = () => {
       </Card>
     </div>
   );
+};
+
+// Funciones de utilidad
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+};
+
+const formatDate = (dateString: string) => {
+  try {
+    return format(new Date(dateString), "dd/MM/yyyy");
+  } catch (error) {
+    return dateString;
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "active":
+      return "bg-green-100 text-green-800";
+    case "inactive":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
 };
 
 export default Customers;
