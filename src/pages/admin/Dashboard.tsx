@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Navigate, Route, Routes, useLocation, Link } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Users,
@@ -10,22 +11,34 @@ import {
   LayoutDashboard,
   Menu,
   X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import Overview from "./Overview";
 import Orders from "./Orders";
 import Customers from "./Customers";
 import Chat from "./Chat";
 import SettingsPage from "./Settings"; // Corrected import
-
-// Simulate authentication check
-const isAdmin = true; // This would be a real admin auth check in production
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminDashboard = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, logout } = useAuth();
 
   const toggleMobileSidebar = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
+  };
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   // Redirect if not admin
@@ -56,25 +69,47 @@ const AdminDashboard = () => {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 border-r bg-background lg:static transform transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-y-0 left-0 z-50 border-r bg-background lg:static transform transition-all duration-300 ease-in-out ${
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          } ${
+            sidebarCollapsed ? "w-20" : "w-64"
           }`}
         >
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b hidden lg:block">
+          <div className="flex flex-col h-full relative">
+            {/* Collapse button (visible only on desktop) */}
+            <button 
+              onClick={toggleSidebar}
+              className="absolute -right-3 top-20 bg-background border rounded-full p-1 hidden lg:flex items-center justify-center z-50 hover:bg-accent"
+            >
+              {sidebarCollapsed ? 
+                <ChevronRight className="h-4 w-4" /> : 
+                <ChevronLeft className="h-4 w-4" />
+              }
+            </button>
+
+            <div className={`p-6 border-b hidden lg:flex items-center ${sidebarCollapsed ? "justify-center" : ""}`}>
               <Link to="/admin" className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-bloodRed text-white font-bold text-lg">
                   P
                 </div>
-                <span className="font-bold text-xl tracking-tight">Admin Panel</span>
+                {!sidebarCollapsed && (
+                  <span className="font-bold text-xl tracking-tight">Admin</span>
+                )}
               </Link>
             </div>
             
-            <div className="p-4 border-b">
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <div className="flex flex-col">
-                  <span className="font-medium">Administrador</span>
-                  <span className="text-xs text-muted-foreground">admin@protospark.com</span>
+            <div className={`p-4 border-b ${sidebarCollapsed ? "items-center" : ""}`}>
+              <div className={`p-4 bg-muted/30 rounded-lg ${sidebarCollapsed ? "flex justify-center" : ""}`}>
+                <div className={`flex ${sidebarCollapsed ? "flex-col items-center" : "flex-col"}`}>
+                  {!sidebarCollapsed && (
+                    <span className="font-medium">{user?.name || "Administrador"}</span>
+                  )}
+                  {!sidebarCollapsed && (
+                    <span className="text-xs text-muted-foreground">{user?.email || "admin@protospark.com"}</span>
+                  )}
+                  {sidebarCollapsed && (
+                    <Users className="h-6 w-6" />
+                  )}
                 </div>
               </div>
             </div>
@@ -83,65 +118,87 @@ const AdminDashboard = () => {
               <Link to="/admin">
                 <Button
                   variant={location.pathname === "/admin" ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
-                  <LayoutDashboard className="mr-2 h-5 w-5" />
-                  Dashboard
+                  <LayoutDashboard className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                  {!sidebarCollapsed && "Dashboard"}
                 </Button>
               </Link>
               <Link to="/admin/orders">
                 <Button
                   variant={location.pathname.includes("/admin/orders") ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
-                  <ClipboardList className="mr-2 h-5 w-5" />
-                  Pedidos
-                  <span className="ml-auto bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
-                    3
-                  </span>
+                  <ClipboardList className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                  {!sidebarCollapsed && (
+                    <>
+                      Pedidos
+                      <span className="ml-auto bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
+                        3
+                      </span>
+                    </>
+                  )}
+                  {sidebarCollapsed && (
+                    <span className="absolute top-0 right-0 bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
+                      3
+                    </span>
+                  )}
                 </Button>
               </Link>
               <Link to="/admin/customers">
                 <Button
                   variant={location.pathname.includes("/admin/customers") ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
-                  <Users className="mr-2 h-5 w-5" />
-                  Clientes
+                  <Users className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                  {!sidebarCollapsed && "Clientes"}
                 </Button>
               </Link>
               <Link to="/admin/chat">
                 <Button
                   variant={location.pathname.includes("/admin/chat") ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Mensajes
-                  <span className="ml-auto bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
-                    5
-                  </span>
+                  <MessageSquare className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                  {!sidebarCollapsed && (
+                    <>
+                      Mensajes
+                      <span className="ml-auto bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
+                        5
+                      </span>
+                    </>
+                  )}
+                  {sidebarCollapsed && (
+                    <span className="absolute top-0 right-0 bg-bloodRed text-white text-xs px-1.5 py-0.5 rounded-full">
+                      5
+                    </span>
+                  )}
                 </Button>
               </Link>
               <Link to="/admin/settings">
                 <Button
                   variant={location.pathname.includes("/admin/settings") ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"}`}
                   onClick={() => setMobileSidebarOpen(false)}
                 >
-                  <Settings className="mr-2 h-5 w-5" />
-                  Configuración
+                  <Settings className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                  {!sidebarCollapsed && "Configuración"}
                 </Button>
               </Link>
             </nav>
             
             <div className="p-4 border-t mt-auto">
-              <Button variant="ghost" className="w-full justify-start text-bloodRed">
-                <LogOut className="mr-2 h-5 w-5" />
-                Cerrar Sesión
+              <Button 
+                variant="ghost" 
+                className={`w-full ${sidebarCollapsed ? "justify-center px-2" : "justify-start"} text-bloodRed`}
+                onClick={handleLogout}
+              >
+                <LogOut className={`${sidebarCollapsed ? "" : "mr-2"} h-5 w-5`} />
+                {!sidebarCollapsed && "Cerrar Sesión"}
               </Button>
             </div>
           </div>
