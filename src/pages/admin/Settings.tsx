@@ -168,15 +168,15 @@ const Settings = () => {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <FormLabel>Contraseña actual</FormLabel>
+                  <div className="font-medium">Contraseña actual</div>
                   <Input type="password" />
                 </div>
                 <div className="space-y-2">
-                  <FormLabel>Nueva contraseña</FormLabel>
+                  <div className="font-medium">Nueva contraseña</div>
                   <Input type="password" />
                 </div>
                 <div className="space-y-2">
-                  <FormLabel>Confirmar contraseña</FormLabel>
+                  <div className="font-medium">Confirmar contraseña</div>
                   <Input type="password" />
                 </div>
               </div>
