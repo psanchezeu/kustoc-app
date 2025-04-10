@@ -18,7 +18,7 @@ const Pricing = () => {
 
   const normalPlan = {
     name: "Prototipo Normal",
-    price: "100 €",
+    price: "1500 €",
     description: "Perfecto para validar conceptos básicos rápidamente",
     delivery: "6 días",
     features: {
@@ -35,7 +35,7 @@ const Pricing = () => {
 
   const premiumPlan = {
     name: "Prototipo Premium",
-    price: "500 €",
+    price: "3000 €",
     description: "Para ideas que necesitan mayor detalle y funcionalidad",
     delivery: "10 días",
     features: {
@@ -51,7 +51,7 @@ const Pricing = () => {
   };
 
   return (
-    <div className="container px-4 py-16 md:py-24">
+    <div className="container px-4 py-16 md:py-24" id="pricing-top">
       <div className="text-center max-w-3xl mx-auto mb-16">
         <h1 className="text-4xl md:text-5xl font-bold mb-6">Planes y Precios</h1>
         <p className="text-xl text-muted-foreground">
@@ -88,7 +88,7 @@ const Pricing = () => {
                 ))}
               </div>
 
-              <Link to="/request-prototype" className="block">
+              <Link to="/request-prototype?plan=normal" className="block">
                 <Button className="w-full bg-bloodRed hover:bg-red-900 py-6">
                   Solicitar Ahora
                 </Button>
@@ -126,7 +126,7 @@ const Pricing = () => {
                 ))}
               </div>
 
-              <Link to="/request-prototype" className="block">
+              <Link to="/request-prototype?plan=premium" className="block">
                 <Button className="w-full bg-bloodRed hover:bg-red-900 py-6">
                   Solicitar Ahora
                 </Button>

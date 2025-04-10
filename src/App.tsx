@@ -1,90 +1,94 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import HowItWorks from "./pages/HowItWorks";
-import Pricing from "./pages/Pricing";
-import About from "./pages/About";
-import RequestPrototype from "./pages/RequestPrototype";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+
+// Auth Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
+// Public Pages
+import Index from "./pages/Index";
+import About from "./pages/About";
+import FAQ from "./pages/FAQ";
+import HowItWorks from "./pages/HowItWorks";
+import Pricing from "./pages/Pricing";
+import NotFound from "./pages/NotFound";
+import RequestPrototype from "./pages/RequestPrototype";
+
+// Dashboard Pages
 import Dashboard from "./pages/dashboard/Dashboard";
+import DashboardOverview from "./pages/dashboard/Overview";
+import DashboardOrders from "./pages/dashboard/Orders";
+import DashboardChat from "./pages/dashboard/Chat";
+import DashboardProfile from "./pages/dashboard/Profile";
+import DashboardSupport from "./pages/dashboard/Support";
+
+// Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { useAuth } from "./contexts/AuthContext";
+import AdminOverview from "./pages/admin/Overview";
+import AdminOrders from "./pages/admin/Orders";
+import AdminChat from "./pages/admin/Chat";
+import AdminSettings from "./pages/admin/Settings";
+import AdminCustomers from "./pages/admin/Customers";
+import AdminClients from "./pages/admin/Clients";
 
-const queryClient = new QueryClient();
+import "./App.css";
 
-const App = () => {
-  // Configurar Supabase para capturar errores
-  useEffect(() => {
-    const handleAuthError = (error: Error) => {
-      console.error("Error de autenticación Supabase:", error);
-    };
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session ? "Session active" : "No session");
-    });
-
-    // Asegurar que los tokens de autenticación sean actualizados automáticamente
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "TOKEN_REFRESHED") {
-        console.log("Token refreshed successfully");
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
+function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/how-it-works" element={<HowItWorks />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/request-prototype" element={<RequestPrototype />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                </Route>
-                <Route path="/dashboard/*" element={
-                  <ProtectedRoute role="customer">
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/*" element={
-                  <ProtectedRoute role="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </TooltipProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Index />} />
+          <Route path="about" element={<About />} />
+          <Route path="how-it-works" element={<HowItWorks />} />
+          <Route path="pricing" element={<Pricing />} />
+          <Route path="request-prototype" element={<RequestPrototype />} />
+          <Route path="faq" element={<FAQ />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+
+        {/* Client Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<DashboardOverview />} />
+          <Route path="overview" element={<DashboardOverview />} />
+          <Route path="orders" element={<DashboardOrders />} />
+          <Route path="chat" element={<DashboardChat />} />
+          <Route path="profile" element={<DashboardProfile />} />
+          <Route path="support" element={<DashboardSupport />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminOverview />} />
+          <Route path="overview" element={<AdminOverview />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="customers" element={<AdminCustomers />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="chat" element={<AdminChat />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
+      </Routes>
+    </Router>
   );
-};
+}
 
 export default App;

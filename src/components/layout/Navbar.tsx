@@ -1,210 +1,148 @@
 
-import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut } from "lucide-react";
 import Logo from "@/components/common/Logo";
-import { ThemeToggle } from "../theme/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Menu, X, Sun, Moon, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const isMobile = useIsMobile();
+  const location = useLocation();
+
+  // Close the mobile menu when the location changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
+
+  const navItems = [
+    { name: "Inicio", path: "/" },
+    { name: "Servicios", path: "/how-it-works" },
+    { name: "Precios", path: "/pricing" },
+    { name: "FAQ", path: "/faq" },
+    { name: "Sobre Nosotros", path: "/about" },
+  ];
+
+  const toggleMenu = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   return (
-    <nav className="w-full border-b bg-background py-3">
-      <div className="container flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
+      <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
-          <Logo />
+          <Link to="/" className="flex items-center">
+            <Logo className="h-8 w-auto mr-2" />
+            <span className="font-bold text-xl">Kustoc</span>
+          </Link>
         </div>
 
-        {/* Navegación Desktop */}
-        <div className="hidden md:flex items-center space-x-1">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:text-bloodRed"
-              }`
-            }
-            end
-          >
-            Inicio
-          </NavLink>
-          <NavLink
-            to="/how-it-works"
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:text-bloodRed"
-              }`
-            }
-          >
-            Cómo Funciona
-          </NavLink>
-          <NavLink
-            to="/pricing"
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:text-bloodRed"
-              }`
-            }
-          >
-            Precios
-          </NavLink>
-          <NavLink
-            to="/about"
-            className={({ isActive }) =>
-              `px-3 py-2 rounded-md text-sm font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:text-bloodRed"
-              }`
-            }
-          >
-            Nosotros
-          </NavLink>
-        </div>
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === item.path
+                  ? "text-foreground font-bold"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center space-x-2">
           <ThemeToggle />
           
-          {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <User className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>
-                    {user?.name || "Usuario"}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard/profile">Perfil</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Cerrar Sesión</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          {user ? (
+            <div className="flex items-center space-x-2">
+              <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
+                <Button variant="ghost">
+                  {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" onClick={logout}>
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only">Cerrar sesión</span>
+              </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <>
               <Link to="/login">
-                <Button variant="outline" size="sm">
-                  Iniciar Sesión
-                </Button>
+                <Button variant="ghost">Iniciar Sesión</Button>
               </Link>
-              <Link to="/register" className="hidden md:block">
-                <Button size="sm" className="bg-bloodRed hover:bg-red-900">
-                  Registro
-                </Button>
+              <Link to="/register">
+                <Button className="bg-bloodRed hover:bg-red-900">Registro</Button>
               </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Menu Button */}
+        <div className="flex items-center space-x-2 md:hidden">
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" onClick={toggleMenu}>
+            {isOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && isMobile && (
+        <div className="md:hidden border-t">
+          <div className="container py-4 px-4 flex flex-col space-y-4">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`text-sm font-medium py-2 ${
+                  location.pathname === item.path
+                    ? "text-foreground font-bold"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+            <div className="pt-4 border-t">
+              {user ? (
+                <div className="flex flex-col space-y-3">
+                  <Link to={user.isAdmin ? "/admin" : "/dashboard"}>
+                    <Button variant="outline" className="w-full">
+                      {user.isAdmin ? "Panel Admin" : "Mi Cuenta"}
+                    </Button>
+                  </Link>
+                  <Button variant="outline" className="w-full" onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar sesión
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-3">
+                  <Link to="/login" className="w-full">
+                    <Button variant="outline" className="w-full">Iniciar Sesión</Button>
+                  </Link>
+                  <Link to="/register" className="w-full">
+                    <Button className="w-full bg-bloodRed hover:bg-red-900">Registro</Button>
+                  </Link>
+                </div>
+              )}
             </div>
-          )}
-
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden rounded-md p-2 text-gray-500 hover:text-bloodRed focus:outline-none"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+          </div>
         </div>
-      </div>
-
-      {/* Menú móvil */}
-      <div
-        className={`${
-          isOpen ? "block" : "hidden"
-        } md:hidden border-t border-gray-200 dark:border-gray-700 py-2`}
-      >
-        <div className="container space-y-1">
-          <NavLink
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md text-base font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`
-            }
-            end
-          >
-            Inicio
-          </NavLink>
-          <NavLink
-            to="/how-it-works"
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md text-base font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`
-            }
-          >
-            Cómo Funciona
-          </NavLink>
-          <NavLink
-            to="/pricing"
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md text-base font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`
-            }
-          >
-            Precios
-          </NavLink>
-          <NavLink
-            to="/about"
-            onClick={() => setIsOpen(false)}
-            className={({ isActive }) =>
-              `block px-3 py-2 rounded-md text-base font-medium ${
-                isActive
-                  ? "text-bloodRed"
-                  : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`
-            }
-          >
-            Nosotros
-          </NavLink>
-          {!isAuthenticated && (
-            <Link
-              to="/register"
-              onClick={() => setIsOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-bloodRed hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              Registro
-            </Link>
-          )}
-        </div>
-      </div>
-    </nav>
+      )}
+    </header>
   );
 };
 
