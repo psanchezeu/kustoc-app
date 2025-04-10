@@ -84,35 +84,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const user = await authService.login(email, password);
-    setState({
-      user: authService.getCurrentUser(),
-      isAuthenticated: authService.isAuthenticated(),
-      isAdmin: authService.isAdmin(),
-      isCustomer: authService.isCustomer(),
-    });
-    return user;
+    try {
+      const user = await authService.login(email, password);
+      setState({
+        user: authService.getCurrentUser(),
+        isAuthenticated: authService.isAuthenticated(),
+        isAdmin: authService.isAdmin(),
+        isCustomer: authService.isCustomer(),
+      });
+      return user;
+    } catch (error) {
+      console.error("Login error in AuthContext:", error);
+      throw error;
+    }
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const user = await authService.register(name, email, password);
-    setState({
-      user: authService.getCurrentUser(),
-      isAuthenticated: authService.isAuthenticated(),
-      isAdmin: authService.isAdmin(),
-      isCustomer: authService.isCustomer(),
-    });
-    return user;
+    try {
+      const user = await authService.register(name, email, password);
+      setState({
+        user: authService.getCurrentUser(),
+        isAuthenticated: authService.isAuthenticated(),
+        isAdmin: authService.isAdmin(),
+        isCustomer: authService.isCustomer(),
+      });
+      return user;
+    } catch (error) {
+      console.error("Register error in AuthContext:", error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await authService.logout();
-    setState({
-      user: null,
-      isAuthenticated: false,
-      isAdmin: false,
-      isCustomer: false,
-    });
+    try {
+      await authService.logout();
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isAdmin: false,
+        isCustomer: false,
+      });
+    } catch (error) {
+      console.error("Logout error in AuthContext:", error);
+      throw error;
+    }
   };
 
   const hasRole = (role: UserRole) => {

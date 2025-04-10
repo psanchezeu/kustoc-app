@@ -25,6 +25,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
+  // Establecer valores predeterminados para facilitar el acceso demo
+  const defaultValues = {
+    email: "",
+    password: "",
+  };
+  
   useEffect(() => {
     // Si el usuario ya está autenticado, redirigirlo
     if (isAuthenticated) {
@@ -35,10 +41,7 @@ const Login = () => {
   // Configuración del formulario
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues,
   });
 
   // Función para manejar el envío del formulario
@@ -52,7 +55,9 @@ const Login = () => {
         title: "Inicio de sesión exitoso",
         description: "Bienvenido a ProtoSpark",
       });
+      console.log("Login successful for:", values.email);
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Error al iniciar sesión",
         description: error.message || "Credenciales incorrectas",
@@ -60,6 +65,19 @@ const Login = () => {
       });
       setLoading(false);
     }
+  };
+
+  // Función para facilitar el inicio de sesión con credenciales de demo
+  const loginWithDemo = (demoType: 'admin' | 'customer') => {
+    const demoCredentials = demoType === 'admin' 
+      ? { email: "admin@protospark.com", password: "password" }
+      : { email: "cliente@demo.com", password: "password" };
+    
+    form.setValue('email', demoCredentials.email);
+    form.setValue('password', demoCredentials.password);
+    
+    // Opcional: enviar el formulario automáticamente
+    form.handleSubmit(onSubmit)();
   };
 
   return (
@@ -85,6 +103,7 @@ const Login = () => {
                         placeholder="tu@email.com" 
                         {...field} 
                         disabled={loading}
+                        autoComplete="email"
                       />
                     </FormControl>
                     <FormMessage />
@@ -103,6 +122,7 @@ const Login = () => {
                         placeholder="********" 
                         {...field} 
                         disabled={loading}
+                        autoComplete="current-password"
                       />
                     </FormControl>
                     <FormMessage />
@@ -131,8 +151,30 @@ const Login = () => {
               {/* Demo de credenciales para facilitar pruebas */}
               <div className="text-xs text-muted-foreground border-t pt-4 mt-4">
                 <p className="mb-2 font-medium">Credenciales de demo:</p>
-                <p>Admin: admin@protospark.com / password</p>
-                <p>Cliente: cliente@demo.com / password</p>
+                <div className="flex gap-2 justify-center mt-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => loginWithDemo('admin')}
+                    className="text-xs"
+                  >
+                    Iniciar como Admin
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => loginWithDemo('customer')}
+                    className="text-xs"
+                  >
+                    Iniciar como Cliente
+                  </Button>
+                </div>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  Admin: admin@protospark.com / password<br />
+                  Cliente: cliente@demo.com / password
+                </p>
               </div>
             </form>
           </Form>
