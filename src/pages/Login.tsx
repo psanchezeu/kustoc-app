@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 // Esquema de validación
 const formSchema = z.object({
@@ -22,12 +23,14 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   
-  // Si el usuario ya está autenticado, redirigirlo
-  if (isAuthenticated) {
-    navigate(isAdmin ? "/admin" : "/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    // Si el usuario ya está autenticado, redirigirlo
+    if (isAuthenticated) {
+      navigate(isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [isAuthenticated, isAdmin, navigate]);
 
   // Configuración del formulario
   const form = useForm<FormValues>({
@@ -44,9 +47,17 @@ const Login = () => {
     
     try {
       await login(values.email, values.password);
-      // La redirección se maneja automáticamente en el useEffect de useAuth
-    } catch (error) {
-      // El error ya es manejado por el servicio de autenticación
+      // La redirección se maneja en el useEffect
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido a ProtoSpark",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al iniciar sesión",
+        description: error.message || "Credenciales incorrectas",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };

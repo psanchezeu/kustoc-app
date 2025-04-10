@@ -1,4 +1,7 @@
 
+import { supabase } from "@/integrations/supabase/client";
+import { storageService } from "./storageService";
+
 // Tipos de usuario en la aplicación
 export type UserRole = "admin" | "customer";
 
@@ -16,31 +19,15 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-// Almacenamiento local para guardar los datos de autenticación
+// Clave para el almacenamiento de sesión
 const STORAGE_KEY = "protospark_auth";
-
-// Usuarios predefinidos para demostración
-const demoUsers: User[] = [
-  {
-    id: "1",
-    name: "Admin ProtoSpark",
-    email: "admin@protospark.com",
-    role: "admin",
-  },
-  {
-    id: "2",
-    name: "Cliente Demo",
-    email: "cliente@demo.com",
-    role: "customer",
-  }
-];
 
 // Cargar estado de autenticación del localStorage
 const loadAuthState = (): AuthState => {
   try {
-    const storedAuth = localStorage.getItem(STORAGE_KEY);
+    const storedAuth = storageService.get<AuthState>(STORAGE_KEY);
     if (storedAuth) {
-      return JSON.parse(storedAuth);
+      return storedAuth;
     }
   } catch (error) {
     console.error("Error loading auth state", error);
@@ -51,7 +38,7 @@ const loadAuthState = (): AuthState => {
 // Guardar estado de autenticación en localStorage
 const saveAuthState = (state: AuthState): void => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    storageService.set(STORAGE_KEY, state);
   } catch (error) {
     console.error("Error saving auth state", error);
   }
@@ -87,72 +74,131 @@ export const authService = {
   },
 
   // Iniciar sesión
-  login(email: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      // Simulamos una petición a un servidor
-      setTimeout(() => {
-        // En una implementación real, esto se haría con una llamada API
-        // y el password se enviaría encriptado
-        const user = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (user && password === "password") { // Contraseña demo para todos los usuarios
-          this.currentAuthState = {
-            user,
-            isAuthenticated: true
-          };
-          
-          saveAuthState(this.currentAuthState);
-          resolve(user);
-        } else {
-          reject(new Error("Credenciales incorrectas"));
-        }
-      }, 500);
-    });
+  async login(email: string, password: string): Promise<User> {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw new Error(error.message);
+      if (!data.user) throw new Error("No se pudo obtener la información del usuario");
+      
+      // Determinar el rol basado en el email (en un sistema real, esto vendría de la base de datos)
+      const role: UserRole = email.toLowerCase() === "admin@protospark.com" ? "admin" : "customer";
+      
+      // Crear objeto de usuario
+      const user: User = {
+        id: data.user.id,
+        name: data.user.user_metadata.name || email.split("@")[0],
+        email: data.user.email || "",
+        role,
+        avatar: data.user.user_metadata.avatar_url
+      };
+      
+      // Actualizar estado de autenticación
+      this.currentAuthState = {
+        user,
+        isAuthenticated: true
+      };
+      
+      saveAuthState(this.currentAuthState);
+      return user;
+    } catch (error) {
+      console.error("Error during login", error);
+      throw error;
+    }
   },
 
-  // Registrar un nuevo usuario (solo para clientes)
-  register(name: string, email: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      // Simulamos una petición a un servidor
-      setTimeout(() => {
-        // Comprobar si el email ya está registrado
-        const existingUser = demoUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-        
-        if (existingUser) {
-          reject(new Error("El email ya está registrado"));
-          return;
+  // Registrar un nuevo usuario
+  async register(name: string, email: string, password: string): Promise<User> {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name
+          }
         }
-        
-        // Crear nuevo usuario
-        const newUser: User = {
-          id: `${demoUsers.length + 1}`,
-          name,
-          email,
-          role: "customer" // Los nuevos registros siempre son clientes
-        };
-        
-        // Añadir a la lista (en una implementación real, esto sería una llamada API)
-        demoUsers.push(newUser);
-        
-        // Iniciar sesión automáticamente
-        this.currentAuthState = {
-          user: newUser,
-          isAuthenticated: true
-        };
-        
-        saveAuthState(this.currentAuthState);
-        resolve(newUser);
-      }, 500);
-    });
+      });
+      
+      if (error) throw new Error(error.message);
+      if (!data.user) throw new Error("No se pudo crear el usuario");
+      
+      // Crear objeto de usuario
+      const user: User = {
+        id: data.user.id,
+        name,
+        email: data.user.email || "",
+        role: "customer", // Por defecto, los nuevos usuarios son clientes
+      };
+      
+      // Actualizar estado de autenticación
+      this.currentAuthState = {
+        user,
+        isAuthenticated: true
+      };
+      
+      saveAuthState(this.currentAuthState);
+      return user;
+    } catch (error) {
+      console.error("Error during registration", error);
+      throw error;
+    }
   },
 
   // Cerrar sesión
-  logout(): void {
-    this.currentAuthState = {
-      user: null,
-      isAuthenticated: false
-    };
-    
-    saveAuthState(this.currentAuthState);
+  async logout(): Promise<void> {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      this.currentAuthState = {
+        user: null,
+        isAuthenticated: false
+      };
+      
+      saveAuthState(this.currentAuthState);
+    } catch (error) {
+      console.error("Error during logout", error);
+      throw error;
+    }
+  },
+
+  // Sincronizar con la sesión de Supabase
+  async syncWithSupabase(): Promise<void> {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+      
+      if (data.session) {
+        // Si hay una sesión activa en Supabase
+        const user = data.session.user;
+        const role: UserRole = user.email?.toLowerCase() === "admin@protospark.com" ? "admin" : "customer";
+        
+        this.currentAuthState = {
+          user: {
+            id: user.id,
+            name: user.user_metadata.name || user.email?.split("@")[0] || "",
+            email: user.email || "",
+            role,
+            avatar: user.user_metadata.avatar_url
+          },
+          isAuthenticated: true
+        };
+      } else {
+        // Si no hay sesión activa
+        this.currentAuthState = {
+          user: null,
+          isAuthenticated: false
+        };
+      }
+      
+      saveAuthState(this.currentAuthState);
+    } catch (error) {
+      console.error("Error syncing with Supabase", error);
+    }
   }
 };

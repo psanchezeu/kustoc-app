@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,75 +20,60 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MoreHorizontal, Search, Filter } from "lucide-react";
+import { orderService, Order } from "@/services/orderService";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
+
+interface OrderWithCustomer extends Order {
+  customer_name: string;
+}
 
 const Orders = () => {
+  const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const orders = [
-    {
-      id: "ORD-001",
-      customer: "Juan Pérez",
-      project: "App de Gestión de Tareas",
-      date: "10/04/2025",
-      status: "in_progress",
-      type: "premium",
-      price: "500 €",
-      deadline: "16/04/2025",
-    },
-    {
-      id: "ORD-002",
-      customer: "María López",
-      project: "Portal de Reservas",
-      date: "05/04/2025",
-      status: "pending",
-      type: "normal",
-      price: "100 €",
-      deadline: "11/04/2025",
-    },
-    {
-      id: "ORD-003",
-      customer: "Carlos Rodríguez",
-      project: "App de Delivery",
-      date: "01/04/2025",
-      status: "pending",
-      type: "premium",
-      price: "500 €",
-      deadline: "11/04/2025",
-    },
-    {
-      id: "ORD-004",
-      customer: "Laura Gómez",
-      project: "Dashboard Analítico",
-      date: "28/03/2025",
-      status: "in_progress",
-      type: "premium",
-      price: "500 €",
-      deadline: "07/04/2025",
-    },
-    {
-      id: "ORD-005",
-      customer: "Pedro Martínez",
-      project: "App de Fitness",
-      date: "25/03/2025",
-      status: "completed",
-      type: "normal",
-      price: "100 €",
-      deadline: "31/03/2025",
-    },
-    {
-      id: "ORD-006",
-      customer: "Ana Sánchez",
-      project: "Plataforma Educativa",
-      date: "20/03/2025",
-      status: "completed",
-      type: "premium",
-      price: "500 €",
-      deadline: "30/03/2025",
-    }
-  ];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        // Obtener todos los pedidos
+        const allOrders = await orderService.getAllOrders();
 
-  const getStatusText = (status) => {
+        // Obtener todos los perfiles para obtener nombres de clientes
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name');
+        
+        if (profilesError) throw profilesError;
+
+        // Combinar datos
+        const ordersWithCustomer = allOrders.map(order => {
+          const customer = profiles?.find(p => p.id === order.customer_id);
+          return {
+            ...order,
+            customer_name: customer?.name || 'Cliente desconocido'
+          };
+        });
+
+        setOrders(ordersWithCustomer);
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los pedidos. " + (error.message || ""),
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [toast]);
+
+  const getStatusText = (status: string) => {
     switch (status) {
       case "pending":
         return "Pendiente";
@@ -101,7 +86,7 @@ const Orders = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-800";
@@ -114,15 +99,27 @@ const Orders = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          order.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        order.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        order.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return <div className="text-center py-10">Cargando pedidos...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -175,10 +172,10 @@ const Orders = () => {
             <TableBody>
               {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
+                  <TableCell>{order.id.slice(0, 8)}</TableCell>
+                  <TableCell>{order.customer_name}</TableCell>
                   <TableCell>{order.project}</TableCell>
-                  <TableCell className="hidden md:table-cell">{order.date}</TableCell>
+                  <TableCell className="hidden md:table-cell">{formatDate(order.date)}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(order.status)}>
                       {getStatusText(order.status)}
@@ -189,8 +186,8 @@ const Orders = () => {
                       {order.type === "premium" ? "Premium" : "Normal"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">{order.price}</TableCell>
-                  <TableCell>{order.deadline}</TableCell>
+                  <TableCell className="hidden md:table-cell">{order.price.toFixed(2)} €</TableCell>
+                  <TableCell>{formatDate(order.deadline)}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon">
                       <MoreHorizontal className="h-4 w-4" />

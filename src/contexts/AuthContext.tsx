@@ -1,119 +1,153 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { authService, User, UserRole } from "@/services/authService";
-import { useToast } from "@/components/ui/use-toast";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService, User, UserRole } from '@/services/authService';
+import { supabase } from '@/integrations/supabase/client';
 
-// Definir el tipo para el contexto
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isCustomer: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, password: string) => Promise<User>;
+  logout: () => Promise<void>;
+  loading: boolean;
   hasRole: (role: UserRole) => boolean;
 }
 
-// Crear el contexto
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isAuthenticated: false,
+  isAdmin: false,
+  isCustomer: false,
+  login: async () => ({ id: '', name: '', email: '', role: 'customer' }),
+  register: async () => ({ id: '', name: '', email: '', role: 'customer' }),
+  logout: async () => {},
+  loading: true,
+  hasRole: () => false,
+});
 
-// Props para el proveedor
-interface AuthProviderProps {
-  children: ReactNode;
-}
+export const useAuth = () => useContext(AuthContext);
 
-// Proveedor del contexto
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(authService.getCurrentUser());
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(authService.isAuthenticated());
-  const { toast } = useToast();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [state, setState] = useState({
+    user: authService.getCurrentUser(),
+    isAuthenticated: authService.isAuthenticated(),
+    isAdmin: authService.isAdmin(),
+    isCustomer: authService.isCustomer(),
+  });
 
-  // Actualizar el estado cuando cambia el estado de autenticación
   useEffect(() => {
-    setUser(authService.getCurrentUser());
-    setIsAuthenticated(authService.isAuthenticated());
-  }, []);
+    // Configurar escucha para cambios de autenticación de Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state change:", event, session);
+        
+        // Si hay una sesión o el evento es SIGNED_OUT, sincronizar con Supabase
+        if (session || event === 'SIGNED_OUT') {
+          await authService.syncWithSupabase();
+          
+          setState({
+            user: authService.getCurrentUser(),
+            isAuthenticated: authService.isAuthenticated(),
+            isAdmin: authService.isAdmin(),
+            isCustomer: authService.isCustomer(),
+          });
+          
+          // Redirigir basado en el evento
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            setTimeout(() => {
+              if (authService.isAdmin()) {
+                navigate('/admin');
+              } else if (authService.isCustomer()) {
+                navigate('/dashboard');
+              }
+            }, 0);
+          } else if (event === 'SIGNED_OUT') {
+            setTimeout(() => {
+              navigate('/login');
+            }, 0);
+          }
+        }
+      }
+    );
+    
+    // Sincronizar con Supabase al iniciar
+    const syncInitialAuth = async () => {
+      try {
+        await authService.syncWithSupabase();
+        setState({
+          user: authService.getCurrentUser(),
+          isAuthenticated: authService.isAuthenticated(),
+          isAdmin: authService.isAdmin(),
+          isCustomer: authService.isCustomer(),
+        });
+      } catch (error) {
+        console.error('Error syncing initial auth state:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    syncInitialAuth();
+    
+    // Limpieza al desmontar
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
-  // Iniciar sesión
   const login = async (email: string, password: string) => {
-    try {
-      const user = await authService.login(email, password);
-      setUser(user);
-      setIsAuthenticated(true);
-      
-      toast({
-        title: "Sesión iniciada",
-        description: `Bienvenido/a, ${user.name}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error al iniciar sesión",
-        description: error instanceof Error ? error.message : "Credenciales incorrectas",
-        variant: "destructive",
-      });
-      throw error;
-    }
+    const user = await authService.login(email, password);
+    setState({
+      user: authService.getCurrentUser(),
+      isAuthenticated: authService.isAuthenticated(),
+      isAdmin: authService.isAdmin(),
+      isCustomer: authService.isCustomer(),
+    });
+    return user;
   };
 
-  // Cerrar sesión
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-    
-    toast({
-      title: "Sesión cerrada",
-      description: "Has cerrado sesión correctamente",
+  const register = async (name: string, email: string, password: string) => {
+    const user = await authService.register(name, email, password);
+    setState({
+      user: authService.getCurrentUser(),
+      isAuthenticated: authService.isAuthenticated(),
+      isAdmin: authService.isAdmin(),
+      isCustomer: authService.isCustomer(),
+    });
+    return user;
+  };
+
+  const logout = async () => {
+    await authService.logout();
+    setState({
+      user: null,
+      isAuthenticated: false,
+      isAdmin: false,
+      isCustomer: false,
     });
   };
 
-  // Registrar un nuevo usuario
-  const register = async (name: string, email: string, password: string) => {
-    try {
-      const user = await authService.register(name, email, password);
-      setUser(user);
-      setIsAuthenticated(true);
-      
-      toast({
-        title: "Registro completado",
-        description: `Bienvenido/a, ${name}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error al registrar",
-        description: error instanceof Error ? error.message : "No se pudo completar el registro",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  // Comprobar si el usuario tiene un rol específico
   const hasRole = (role: UserRole) => {
-    return user?.role === role;
+    return authService.hasRole(role);
   };
 
-  // Valores que se proveerán a través del contexto
-  const value = {
-    user,
-    isAuthenticated,
-    isAdmin: user?.role === "admin",
-    isCustomer: user?.role === "customer",
-    login,
-    logout,
-    register,
-    hasRole,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-// Hook personalizado para usar el contexto de autenticación
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
-  }
-  return context;
-}
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        logout,
+        loading,
+        hasRole
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};

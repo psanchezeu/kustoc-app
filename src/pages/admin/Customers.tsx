@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,66 +14,92 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
-const customers = [
-  {
-    id: "CUST-001",
-    name: "Juan Pérez",
-    email: "juan.perez@ejemplo.com",
-    created: "10/02/2025",
-    orders: 2,
-    totalSpent: "600 €",
-    status: "active"
-  },
-  {
-    id: "CUST-002",
-    name: "María López",
-    email: "maria.lopez@ejemplo.com",
-    created: "15/02/2025",
-    orders: 1,
-    totalSpent: "100 €",
-    status: "active"
-  },
-  {
-    id: "CUST-003",
-    name: "Carlos Rodríguez",
-    email: "carlos.rodriguez@ejemplo.com",
-    created: "01/03/2025",
-    orders: 3,
-    totalSpent: "1,100 €",
-    status: "active"
-  },
-  {
-    id: "CUST-004",
-    name: "Laura Gómez",
-    email: "laura.gomez@ejemplo.com",
-    created: "12/03/2025",
-    orders: 1,
-    totalSpent: "500 €",
-    status: "active"
-  },
-  {
-    id: "CUST-005",
-    name: "Pedro Martínez",
-    email: "pedro.martinez@ejemplo.com",
-    created: "20/03/2025",
-    orders: 2,
-    totalSpent: "600 €",
-    status: "inactive"
-  },
-  {
-    id: "CUST-006",
-    name: "Ana Sánchez",
-    email: "ana.sanchez@ejemplo.com",
-    created: "25/03/2025",
-    orders: 1,
-    totalSpent: "500 €",
-    status: "active"
-  }
-];
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+  orders_count?: number;
+  total_spent?: number;
+  status: string;
+}
 
 const Customers = () => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        // Obtener los perfiles de usuarios
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            name,
+            created_at
+          `);
+        
+        if (profilesError) throw profilesError;
+        
+        // Obtener los emails de auth.users (solo disponible para administradores)
+        const { data: users, error: usersError } = await supabase
+          .from('auth')
+          .from('users')
+          .select('id, email');
+        
+        if (usersError) {
+          console.error("Error fetching users:", usersError);
+          // Continuar con los perfiles obtenidos
+        }
+        
+        // Obtener los pedidos para calcular totales
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('customer_id, price');
+        
+        if (ordersError) throw ordersError;
+        
+        // Combinar los datos
+        const customersData = profiles?.map(profile => {
+          const user = users?.find(u => u.id === profile.id) || { email: 'Correo oculto' };
+          
+          // Calcular estadísticas de pedidos
+          const customerOrders = orders?.filter(order => order.customer_id === profile.id) || [];
+          const ordersCount = customerOrders.length;
+          const totalSpent = customerOrders.reduce((sum, order) => sum + parseFloat(order.price.toString()), 0);
+          
+          return {
+            id: profile.id,
+            name: profile.name,
+            email: user.email,
+            created_at: profile.created_at,
+            orders_count: ordersCount,
+            total_spent: totalSpent,
+            status: 'active' // Por defecto todos activos
+          };
+        }) || [];
+        
+        setCustomers(customersData);
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los clientes. " + (error.message || ""),
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCustomers();
+  }, [toast]);
 
   const filteredCustomers = customers.filter(customer => {
     return customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,7 +107,7 @@ const Customers = () => {
            customer.id.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const getInitials = (name) => {
+  const getInitials = (name: string) => {
     return name
       .split(" ")
       .map((n) => n[0])
@@ -89,7 +115,15 @@ const Customers = () => {
       .toUpperCase();
   };
 
-  const getStatusColor = (status) => {
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -99,6 +133,10 @@ const Customers = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-10">Cargando clientes...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -148,9 +186,9 @@ const Customers = () => {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{customer.id}</TableCell>
-                  <TableCell className="hidden md:table-cell">{customer.created}</TableCell>
-                  <TableCell>{customer.orders}</TableCell>
-                  <TableCell>{customer.totalSpent}</TableCell>
+                  <TableCell className="hidden md:table-cell">{formatDate(customer.created_at)}</TableCell>
+                  <TableCell>{customer.orders_count || 0}</TableCell>
+                  <TableCell>{(customer.total_spent || 0).toFixed(2)} €</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(customer.status)}>
                       {customer.status === "active" ? "Activo" : "Inactivo"}

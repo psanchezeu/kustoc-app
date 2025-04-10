@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/services/authService";
@@ -10,7 +10,24 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, role }: ProtectedRouteProps) => {
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, hasRole, loading } = useAuth();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // Esperar a que se complete la carga de la autenticación
+    if (!loading) {
+      setIsReady(true);
+    }
+  }, [loading]);
+
+  // Mostrar nada mientras se verifica la autenticación
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bloodRed"></div>
+      </div>
+    );
+  }
 
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {

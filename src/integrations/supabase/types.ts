@@ -9,7 +9,95 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          order_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          order_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_id: string
+          date: string
+          deadline: string
+          id: string
+          price: number
+          project: string
+          status: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          date?: string
+          deadline: string
+          id?: string
+          price: number
+          project: string
+          status: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          date?: string
+          deadline?: string
+          id?: string
+          price?: number
+          project?: string
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          id: string
+          name: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
