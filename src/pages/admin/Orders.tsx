@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +19,19 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MoreHorizontal, Search, Filter } from "lucide-react";
+import { MoreHorizontal, Search, Filter, Plus, X } from "lucide-react";
 import { orderService, Order } from "@/services/orderService";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
+import CreateOrderForm from "@/components/admin/CreateOrderForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface OrderWithCustomer extends Order {
   customer_name: string;
@@ -35,46 +44,51 @@ interface Profile {
 
 const Orders = () => {
   const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Obtener todos los pedidos
+      const allOrders = await orderService.getAllOrders();
+
+      // Obtener todos los perfiles para obtener nombres de clientes
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name');
+      
+      if (profilesError) throw profilesError;
+      
+      setProfiles(profilesData as Profile[]);
+
+      // Combinar datos
+      const ordersWithCustomer = allOrders.map(order => {
+        const customer = (profilesData as Profile[])?.find(p => p.id === order.customer_id);
+        return {
+          ...order,
+          customer_name: customer?.name || 'Cliente desconocido'
+        };
+      });
+
+      setOrders(ordersWithCustomer);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los pedidos. " + (error.message || ""),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        // Obtener todos los pedidos
-        const allOrders = await orderService.getAllOrders();
-
-        // Obtener todos los perfiles para obtener nombres de clientes
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name');
-        
-        if (profilesError) throw profilesError;
-
-        // Combinar datos
-        const ordersWithCustomer = allOrders.map(order => {
-          const customer = (profiles as Profile[])?.find(p => p.id === order.customer_id);
-          return {
-            ...order,
-            customer_name: customer?.name || 'Cliente desconocido'
-          };
-        });
-
-        setOrders(ordersWithCustomer);
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los pedidos. " + (error.message || ""),
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
+    fetchData();
   }, [toast]);
 
   const getStatusText = (status: string) => {
@@ -121,6 +135,11 @@ const Orders = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleOrderCreated = () => {
+    setIsDialogOpen(false);
+    fetchData();
+  };
+
   if (loading) {
     return <div className="text-center py-10">Cargando pedidos...</div>;
   }
@@ -129,6 +148,19 @@ const Orders = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Gestión de Pedidos</h1>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-bloodRed hover:bg-red-900">
+              <Plus className="mr-2 h-4 w-4" /> Nuevo Pedido
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Crear Nuevo Pedido</DialogTitle>
+            </DialogHeader>
+            <CreateOrderForm customers={profiles} onSuccess={handleOrderCreated} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="p-4">
@@ -156,6 +188,15 @@ const Orders = () => {
               </SelectContent>
             </Select>
           </div>
+          {searchTerm && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setSearchTerm("")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <div className="overflow-auto">

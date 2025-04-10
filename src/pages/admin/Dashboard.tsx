@@ -12,14 +12,18 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from "lucide-react";
 import Overview from "./Overview";
 import Orders from "./Orders";
 import Customers from "./Customers";
 import Chat from "./Chat";
-import SettingsPage from "./Settings"; // Corrected import
+import SettingsPage from "./Settings";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const AdminDashboard = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -27,6 +31,7 @@ const AdminDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
+  const { theme } = useTheme();
 
   const toggleMobileSidebar = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
@@ -52,18 +57,21 @@ const AdminDashboard = () => {
       <div className="lg:hidden flex items-center justify-between p-4 border-b">
         <Link to="/admin" className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-bloodRed text-white font-bold text-lg">
-            P
+            K
           </div>
           <span className="font-bold text-xl tracking-tight">Admin</span>
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleMobileSidebar}
-          className="lg:hidden"
-        >
-          {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMobileSidebar}
+            className="lg:hidden"
+          >
+            {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
 
       <div className="flex">
@@ -87,15 +95,19 @@ const AdminDashboard = () => {
               }
             </button>
 
-            <div className={`p-6 border-b hidden lg:flex items-center ${sidebarCollapsed ? "justify-center" : ""}`}>
+            <div className={`p-6 border-b hidden lg:flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
               <Link to="/admin" className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-bloodRed text-white font-bold text-lg">
-                  P
+                  K
                 </div>
                 {!sidebarCollapsed && (
-                  <span className="font-bold text-xl tracking-tight">Admin</span>
+                  <span className="font-bold text-xl tracking-tight">Kustoc</span>
                 )}
               </Link>
+              
+              {!sidebarCollapsed && (
+                <ThemeToggle />
+              )}
             </div>
             
             <div className={`p-4 border-b ${sidebarCollapsed ? "items-center" : ""}`}>
@@ -105,7 +117,7 @@ const AdminDashboard = () => {
                     <span className="font-medium">{user?.name || "Administrador"}</span>
                   )}
                   {!sidebarCollapsed && (
-                    <span className="text-xs text-muted-foreground">{user?.email || "admin@protospark.com"}</span>
+                    <span className="text-xs text-muted-foreground">{user?.email || "admin@kustoc.com"}</span>
                   )}
                   {sidebarCollapsed && (
                     <Users className="h-6 w-6" />
@@ -189,6 +201,15 @@ const AdminDashboard = () => {
                   {!sidebarCollapsed && "Configuración"}
                 </Button>
               </Link>
+              
+              {sidebarCollapsed && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center px-2 mt-4"
+                >
+                  <ThemeToggle />
+                </Button>
+              )}
             </nav>
             
             <div className="p-4 border-t mt-auto">
@@ -211,7 +232,7 @@ const AdminDashboard = () => {
             <Route path="/orders" element={<Orders />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/chat" element={<Chat />} />
-            <Route path="/settings" element={<SettingsPage />} /> {/* Corrected component name */}
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/admin" />} />
           </Routes>
         </main>
