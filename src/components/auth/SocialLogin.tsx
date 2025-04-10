@@ -6,13 +6,13 @@ import { useToast } from "@/components/ui/use-toast";
 
 const SocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithGoogle } = useAuth();
+  const { signInWithGoogle } = useAuth(); // Changed from loginWithGoogle to signInWithGoogle
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
-      await loginWithGoogle();
+      await signInWithGoogle(); // Changed from loginWithGoogle to signInWithGoogle
     } catch (error: any) {
       toast({
         title: "Error",

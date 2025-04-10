@@ -7,14 +7,14 @@ const Footer = () => {
 
   return (
     <footer className="border-t bg-background">
-      <div className="container px-4 py-12 md:py-16 lg:px-8">
+      <div className="container px-4 py-12 md:py-16 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="flex flex-col space-y-4">
             <div className="flex items-center">
               <Logo />
               <span className="font-bold text-xl ml-2">Kustoc</span>
             </div>
-            <p className="max-w-xs text-muted-foreground">
+            <p className="max-w-xs text-muted-foreground text-left">
               Transforma tus ideas en prototipos funcionales con nuestra plataforma impulsada por IA.
             </p>
             <div className="flex space-x-4">
@@ -70,7 +70,7 @@ const Footer = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-8 md:gap-16 lg:col-span-2 lg:grid-cols-4">
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <h3 className="text-sm font-medium">Servicios</h3>
               <ul className="space-y-2">
                 <li>
@@ -90,7 +90,7 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <h3 className="text-sm font-medium">Empresa</h3>
               <ul className="space-y-2">
                 <li>
@@ -110,7 +110,7 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <h3 className="text-sm font-medium">Soporte</h3>
               <ul className="space-y-2">
                 <li>
@@ -125,7 +125,7 @@ const Footer = () => {
                 </li>
               </ul>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 text-left">
               <h3 className="text-sm font-medium">Legal</h3>
               <ul className="space-y-2">
                 <li>

@@ -5,8 +5,8 @@ import SocialLogin from "./SocialLogin";
 
 const RegisterCard = () => {
   return (
-    <Card className="border-2 shadow-md">
-      <CardHeader className="text-center space-y-2 pb-6">
+    <Card className="border shadow-md w-full mx-auto">
+      <CardHeader className="space-y-2 pb-6">
         <CardTitle className="text-2xl font-bold">Crear Cuenta</CardTitle>
         <CardDescription className="text-muted-foreground">
           Regístrate para comenzar a crear tus prototipos

@@ -43,6 +43,17 @@
     --sidebar-accent-foreground: 0 0% 10%;
     --sidebar-border: 0 0% 91%;
     --sidebar-ring: 0 100% 27%;
+    
+    /* Spacing variables for consistent padding and margins */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-12: 3rem;
+    --spacing-16: 4rem;
+    --spacing-24: 6rem;
   }
 
   .dark {
@@ -95,12 +106,32 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
+  /* Consistent text alignment for better readability */
+  h1, h2, h3, h4, h5, h6, p, li {
+    @apply text-left;
+  }
+
+  /* Card styles with consistent padding */
+  .card-base {
+    @apply p-6 rounded-lg border;
+  }
+
   .glass-card {
     @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg;
   }
 
   .blood-gradient {
     @apply bg-gradient-to-br from-bloodRed to-red-900;
+  }
+  
+  /* Container styles for consistent layout */
+  .content-container {
+    @apply container mx-auto px-4 py-8 md:py-16 max-w-6xl;
+  }
+  
+  /* Consistent section spacing */
+  .section-spacing {
+    @apply space-y-16;
   }
 }
 
@@ -125,10 +156,34 @@
   .slide-in-from-top {
     animation-name: slide-in-from-top;
   }
+  
+  /* Text alignment utilities */
+  .text-content {
+    @apply text-left max-w-3xl;
+  }
 }
 
 .shadow-around {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Card hover effects */
+.interactive-card {
+  @apply transition-all duration-200;
+}
+.interactive-card:hover {
+  @apply shadow-md transform translate-y-[-2px];
+}
+
+/* Consistent form styles */
+.form-container {
+  @apply space-y-6;
+}
+.form-group {
+  @apply space-y-2;
+}
+.form-label {
+  @apply block text-sm font-medium;
 }
 
 /* Scrollbar customization */
@@ -186,4 +241,17 @@ body {
   opacity: 0;
   transform: scale(0.95);
   transition: opacity 300ms, transform 300ms;
+}
+
+/* Consistent button styling */
+.btn-primary {
+  @apply bg-bloodRed text-white hover:bg-red-900 font-medium px-4 py-2 rounded transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium px-4 py-2 rounded transition-colors;
+}
+
+.btn-outline {
+  @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground font-medium px-4 py-2 rounded transition-colors;
 }
