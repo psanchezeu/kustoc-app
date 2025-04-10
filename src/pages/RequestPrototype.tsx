@@ -9,7 +9,7 @@ const RequestPrototype = () => {
   const typeFromParams = searchParams.get("type");
   const navigate = useNavigate();
   
-  // Ensure we always start at step 1 regardless of URL params
+  // Always start at step 1
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     type: typeFromParams || "normal", // Use URL param if available
@@ -29,18 +29,18 @@ const RequestPrototype = () => {
 
   const nextStep = () => {
     setStep((prev) => prev + 1);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const prevStep = () => {
     setStep((prev) => prev - 1);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Redirect to payment
-    navigate("/payment");
+    // Redirect directly to Stripe
+    navigate("/payment?amount=" + formData.budget);
   };
 
   // Step 1: Project Details

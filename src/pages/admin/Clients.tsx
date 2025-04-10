@@ -31,6 +31,7 @@ interface Profile {
   phone?: string;
   company?: string;
   created_at?: string;
+  avatar?: string;
 }
 
 const Clients = () => {
@@ -54,11 +55,13 @@ const Clients = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
-        .order("name");
+        .select("id, name, email, phone, company, created_at, avatar");
 
       if (error) throw error;
-      setClients(data || []);
+      
+      // Ensure we're getting all required fields
+      const typedData = data as Profile[];
+      setClients(typedData);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -107,16 +110,13 @@ const Clients = () => {
         return;
       }
 
-      // Create a new auth user (would require proper server function in production)
-      // For demo purposes just create profile entry
-      const { data, error } = await supabase.from("profiles").insert([
-        {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-        },
-      ]);
+      // Create a new profile entry
+      const { data, error } = await supabase.from("profiles").insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+      });
 
       if (error) throw error;
 

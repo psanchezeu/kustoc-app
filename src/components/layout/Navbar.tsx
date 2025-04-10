@@ -36,7 +36,10 @@ const Navbar = () => {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <Logo />
+            {/* Fix nesting issue with Logo component */}
+            <div className="mr-2">
+              <Logo />
+            </div>
             <span className="font-bold text-xl">Kustoc</span>
           </Link>
         </div>
